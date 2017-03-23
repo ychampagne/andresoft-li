@@ -42,8 +42,10 @@ public class DocumentStoreApp
         // add  options
         final OptionGroup optgrp = new OptionGroup();
         optgrp.setRequired(true);
-        optgrp.addOption(new Option("u", false, "upload"));
-        optgrp.addOption(new Option("d", false, "download"));
+        optgrp.addOption(new Option("c", "create", false, "create"));
+        optgrp.addOption(new Option("r", "replace", false, "replace"));
+        optgrp.addOption(new Option("d", "delete", false, "delete"));
+        optgrp.addOption(new Option("g", "get", false, "get"));
 
         options.addOptionGroup(optgrp);
         options.addOption("i", true, "document id");
@@ -53,7 +55,7 @@ public class DocumentStoreApp
         final CommandLine cmd = parser.parse(options, args);
         final Stopwatch stopwatch = Stopwatch.createUnstarted();
 
-        if (cmd.hasOption("u"))
+        if (cmd.hasOption("create"))
         {
             final String filePath = cmd.getOptionValue("f");
 
@@ -73,7 +75,7 @@ public class DocumentStoreApp
 
             }
         }
-        if (cmd.hasOption("d"))
+        if (cmd.hasOption("get"))
         {
             try
             {
@@ -93,6 +95,57 @@ public class DocumentStoreApp
             catch (final Exception e)
             {
                 log.error("error downloading file from document store {} ", stopwatch.toString(), e);
+
+            }
+        }
+        if (cmd.hasOption("replace"))
+        {
+            try
+            {
+                final String filePath = cmd.getOptionValue("f");
+
+                final String documentId = cmd.getOptionValue("i");
+
+                try (final InputStream inputStream = new FileInputStream(filePath))
+                {
+                    stopwatch.elapsed(TimeUnit.SECONDS);
+                    stopwatch.start();
+
+                    documentStore.replace(documentId, inputStream);
+
+                    log.info("document store replace time [{}]  document id  [{}]", stopwatch.toString(), documentId);
+                }
+
+                catch (final Exception e)
+                {
+                    log.error("error replacing file  replace time {} ", stopwatch.toString(), e);
+
+                }
+
+            }
+            catch (final Exception e)
+            {
+                log.error("error replacing  file {} ", stopwatch.toString(), e);
+
+            }
+        }
+        if (cmd.hasOption("delete"))
+        {
+            try
+            {
+                final String documentId = cmd.getOptionValue("i");
+
+                stopwatch.elapsed(TimeUnit.SECONDS);
+                stopwatch.start();
+
+                documentStore.delete(documentId);
+
+                log.info("document store delete time [{}]  document id  [{}]", stopwatch.toString(), documentId);
+
+            }
+            catch (final Exception e)
+            {
+                log.error("error deleting  file {} ", stopwatch.toString(), e);
 
             }
         }
